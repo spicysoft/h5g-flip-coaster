@@ -22,7 +22,7 @@ class Wave extends GameObject{
         const px0 = this.waveX;
         const py0 = Util.h(0.5) + Util.w(0.1);
         const px1 = px0 + Util.w(LAND_L_PW) * 2;
-        const py1 = py0;
+        const py1 = py0 + Util.w(0.1);
         new Bar( px0, py0, px1, py1 );
         this.waveX += Util.w(LAND_L_PW) * 2;
         this.lastPx = px1;

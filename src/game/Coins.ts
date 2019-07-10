@@ -45,7 +45,7 @@ class Coin extends GameObject{
         let dx = Player.I.x - this.x;
         let dy = Player.I.y - this.y;
         let l = dx**2 + dy**2;
-        if( l <= (Player.I.radius + this.radius)**2 ){
+        if( l <= (Player.I.w + this.radius)**2 ){
             Score.I.addPoint(1);
             this.destroy();
             return true;

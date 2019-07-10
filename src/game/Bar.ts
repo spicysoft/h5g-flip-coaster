@@ -1,7 +1,7 @@
 // Liberapp 2019 - Tahiti Katagai
 // バー地形
 
-class Bar extends GameObject{
+class Bar extends PhysicsObject{
 
     static bars:Bar[] = [];
 
@@ -10,11 +10,18 @@ class Bar extends GameObject{
     py0:number;
     px1:number;
     py1:number;
-
+    
     // 接触判定要 単位ベクトルと長さ
     uvx:number;
     uvy:number;
     length:number;
+
+    // rectangle
+    cx:number;
+    cy:number;
+    w:number;
+    h:number;
+    angle:number;
 
     constructor( px0:number, py0:number, px1:number, py1:number ){
         super();
@@ -33,7 +40,14 @@ class Bar extends GameObject{
         this.uvx *= normalizer;
         this.uvy *= normalizer;
 
+        this.cx = (px0 + py0) * 0.5;
+        this.cy = (px1 + py1) * 0.5;
+        this.w = this.length;
+        this.h = Util.w(BAR_RADIUS_PER_W) * 2;
+        this.angle = Math.atan2( this.uvy, this.uvx );
+
         this.setDisplay();
+        this.setBody();
     }
 
     onDestroy(){
@@ -41,24 +55,32 @@ class Bar extends GameObject{
     }
 
     setDisplay(){
-        let shape = this.display as egret.Shape;
-        if( this.display == null ){
-            this.display = shape = new egret.Shape();
-            GameObject.gameDisplay.addChildAt(this.display, 1);
-        }else
-            shape.graphics.clear();
-        
-        shape.graphics.lineStyle(5, BAR_COLOR);
-        shape.graphics.moveTo(this.px0, this.py0);
-        shape.graphics.lineTo(this.px1, this.py1);
+        if( this.display )
+            GameObject.gameDisplay.removeChild( this.display );
+
+        const shape = new egret.Shape();
+        this.display = shape;
+        GameObject.gameDisplay.addChildAt(this.display, 1);
+        shape.x = this.cx;
+        shape.y = this.cy;
+        shape.graphics.beginFill( BAR_COLOR );
+        shape.graphics.drawRect( -0.5*this.w, -0.5*this.h, this.w, this.h );
+        shape.graphics.endFill();
     }
 
-    update(){
+    setBody(){
+        this.body = new p2.Body( {gravityScale:0, mass:1, position:[this.p2m(this.cx), this.p2m(this.cy)], type:p2.Body.STATIC} );
+        this.body.addShape(new p2.Box( { width:this.p2m(this.w), height:this.p2m(this.h), collisionGroup:PHYSICS_GROUP_OBSTACLE, collisionMask:PHYSICS_GROUP_PLAYER } ), [0, 0], 0);
+        this.body.displays = [this.display];
+        this.body.angle = this.angle;
+        PhysicsObject.world.addBody(this.body);
+    }
+
+    fixedUpdate(){
         if( Camera2D.x - Util.w(0.5) > this.px1  ){
             this.destroy();
             Score.I.addPoint(1);
         }
     }
-    
 }
 

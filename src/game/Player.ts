@@ -1,7 +1,7 @@
 // Liberapp 2019 - Tahiti Katagai
 // プレイヤー
 
-class Player extends GameObject{
+class Player extends PhysicsObject{
 
     static I:Player = null;
 
@@ -10,35 +10,44 @@ class Player extends GameObject{
     set x( x:number ){ this.display.x = x; }
     set y( y:number ){ this.display.y = y; }
 
-    radius:number;
+    get vx():number { return this.body.velocity[0]; }
+    get vy():number { return this.body.velocity[1]; }
+    set vx( vx:number ) { this.body.velocity[0] = vx; }
+    set vy( vy:number ) { this.body.velocity[1] = vy; }
+    
+    w:number;
+    h:number;
     color:number;
-    vx:number;
-    vy:number;
-    landing:boolean;
-    jumping:boolean;
-    floating:boolean;
-    jumpButtonFrame:number;
-    jumpButtomY:number;
+    // vx:number = 0;
+    // vy:number = 0;
+    // rv:number = 0;
+    landing:boolean = false;
+    jumping:boolean = false;
+    floating:boolean = false;
+    jumpButtonFrame:number = 0;
+    jumpButtomY:number = 0;
 
-    magnet:number;
-    big:number;
+    magnet:number = 0;
+    big:number = 0;
 
-    button:Button;
+    button:Button = null;
     state:()=>void = this.stateNone;
 
     constructor( px:number, py:number ) {
         super();
 
         Player.I = this;
-        this.radius = Util.w(PLAYER_RADIUS_PER_W);
+        this.w = Util.w(PLAYER_WIDE_PER_W);
+        this.h = Util.w(PLAYER_HIGH_PER_W);
         this.color = PLAYER_COLOR;
-        this.vx = 0;//Util.w( PLAYER_SPEED_PER_W );
-        this.vy = 0;
+        // this.vx = 0; //Util.w( PLAYER_SPEED_PER_W );
+        // this.vy = 0;
         this.jumpButtomY = Util.h(0.5);
 
         this.setDisplay( px, py );
+        this.setBody( px, py );
         Camera2D.x = 0;
-        this.scrollCamera( 1, 1.7 );
+        this.scrollCamera( 1, 1.1 );
         this.button = new Button( null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, null ); // 透明な全画面ボタン
     }
 
@@ -58,11 +67,28 @@ class Player extends GameObject{
         shape.x = x;
         shape.y = y;
         shape.graphics.beginFill( this.color );
-        shape.graphics.drawCircle( 0, 0, this.radius );
+        shape.graphics.drawRect( -0.5*this.w, -0.5*this.h, this.w, this.h );
+        shape.graphics.drawCircle( 0, this.h * -1, this.w * 0.25 );
         shape.graphics.endFill();
     }
 
-    update(){
+    setBody( px:number, py:number ){
+        this.body = new p2.Body( {gravityScale:1, mass:0.1, position:[this.p2m(px), this.p2m(py)] } );
+        this.body.addShape(new p2.Box( { width:this.p2m(this.w), height:this.p2m(this.h), collisionGroup:PHYSICS_GROUP_PLAYER, collisionMask:PHYSICS_GROUP_OBSTACLE } ), [0, 0], 0);
+        this.body.displays = [this.display];
+        PhysicsObject.world.addBody(this.body);
+        PhysicsObject.world.on("beginContact", this.beginContact, this);
+    }
+
+    beginContact(e){
+        const bodyA:p2.Body = e.bodyA;
+        const bodyB:p2.Body = e.bodyB;
+        if( bodyA == this.body || bodyB == this.body ){
+            this.landing = true;
+        }
+    }
+
+    fixedUpdate(){
         this.state();
     }
 
@@ -82,11 +108,11 @@ class Player extends GameObject{
         this.state = this.stateRun;
     }
     stateRun() {
-        this.checkLand();
-        if( this.vx < 0 ){
-            this.setStateMiss();
-            return;
-        }
+        // this.checkLand();
+        // if( this.vx < 0 ){
+        //     this.setStateMiss();
+        //     return;
+        // }
         this.jump();
         this.progress( true );
 
@@ -130,6 +156,12 @@ class Player extends GameObject{
                         if( this.button.touch ) console.log( "jump height" + (this.y - this.jumpButtomY).toFixed(0) );
                     }
                 }
+
+                // 回転
+                this.body.angularVelocity *= 0.75;
+                if( this.button.touch )
+                    this.body.angularVelocity -= 1.5;
+                // this.display.rotation += this.rv;
             }
             else{
                 // 着地
@@ -145,48 +177,14 @@ class Player extends GameObject{
     }
 
     progress( run:boolean ){
-        if( run ){
-            const vxd = Util.w( PLAYER_SPEED_PER_W ) / 32;
-            this.vx += Util.clamp( Util.w(PLAYER_SPEED_PER_W)-this.vx, -vxd, +vxd );
-        }
-        this.vy += Util.w(GRAVITY_PER_W);
-        this.vy = Math.min( this.vy, Util.w(MAX_VY_PER_W) );
-        this.x += this.vx;
-        this.y += this.vy;
-    }
-
-    checkLand(){
-        this.landing = false;
-        let radius = this.radius + Util.w(BAR_RADIUS_PER_W);
-        Bar.bars.forEach( bar => {
-            if( bar.px0 < this.x+radius && bar.px1 > this.x-radius ){
-                // 最近点
-                let dx = this.x - bar.px0;
-                let dy = this.y - bar.py0;
-                let dot = dx*bar.uvx + dy*bar.uvy;
-                dot = Util.clamp( dot, 0, bar.length );
-                let npx = bar.px0 + bar.uvx * dot;
-                let npy = bar.py0 + bar.uvy * dot;
-                // 接触判定と反射
-                dx = this.x - npx;
-                dy = this.y - npy;
-                let l = dx**2 + dy**2;
-                if( l <= radius**2 ){
-                    l = Math.sqrt( l );
-                    const _l = 1/l;
-                    dx *= _l;
-                    dy *= _l;
-                    dot = radius - l;
-                    this.x += dx*dot;
-                    this.y += dy*dot;
-                    dot = dx*this.vx + dy*this.vy;
-                    this.vx -= dx*dot;
-                    this.vy -= dy*dot;
-                    if( dy < 0 )
-                        this.landing = true;
-                }
-            }
-        });
+        // if( run ){
+        //     const vxd = Util.w( PLAYER_SPEED_PER_W ) / 32;
+        //     this.vx += Util.clamp( Util.w(PLAYER_SPEED_PER_W)-this.vx, -vxd, +vxd );
+        // }
+        // this.vy += Util.w(GRAVITY_PER_W);
+        // this.vy = Math.min( this.vy, Util.w(MAX_VY_PER_W) );
+        // this.x += this.vx;
+        // this.y += this.vy;
     }
 
     show(){
@@ -210,7 +208,6 @@ class Player extends GameObject{
     stateMiss(){
         if( this.checkFall() )
             return;
-        this.checkLand();
         this.progress( false );
         this.show();
     }

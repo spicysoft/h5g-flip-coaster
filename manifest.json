@@ -5,16 +5,18 @@
 		"libs/modules/eui/eui.js",
 		"libs/modules/assetsmanager/assetsmanager.js",
 		"libs/modules/tween/tween.js",
-		"libs/modules/promise/promise.js"
+		"libs/modules/promise/promise.js",
+		"libs/modules/physics/physics.js"
 	],
 	"game": [
 		"bin-debug/system/GameObject.js",
-		"bin-debug/system/Camera.js",
+		"bin-debug/system/PhysicsObject.js",
 		"bin-debug/game/Coins.js",
 		"bin-debug/game/Game.js",
 		"bin-debug/game/Player.js",
 		"bin-debug/game/Wave.js",
 		"bin-debug/system/Button.js",
+		"bin-debug/system/Camera.js",
 		"bin-debug/game/Bar.js",
 		"bin-debug/Main.js",
 		"bin-debug/system/Random.js",
