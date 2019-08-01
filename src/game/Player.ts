@@ -18,10 +18,7 @@ class Player extends PhysicsObject{
     w:number;
     h:number;
     color:number;
-    // vx:number = 0;
-    // vy:number = 0;
-    // rv:number = 0;
-    landing:boolean = false;
+    landing:boolean = true;
     jumping:boolean = false;
     floating:boolean = false;
     jumpButtonFrame:number = 0;
@@ -40,8 +37,6 @@ class Player extends PhysicsObject{
         this.w = Util.w(PLAYER_WIDE_PER_W);
         this.h = Util.w(PLAYER_HIGH_PER_W);
         this.color = PLAYER_COLOR;
-        // this.vx = 0; //Util.w( PLAYER_SPEED_PER_W );
-        // this.vy = 0;
         this.jumpButtomY = Util.h(0.5);
 
         this.setDisplay( px, py );
@@ -67,35 +62,64 @@ class Player extends PhysicsObject{
         shape.x = x;
         shape.y = y;
         shape.graphics.beginFill( this.color );
-        shape.graphics.drawRect( -0.5*this.w, -0.5*this.h, this.w, this.h );
-        shape.graphics.drawCircle( 0, this.h * -1, this.w * 0.25 );
+        shape.graphics.drawCircle( 0, this.h * -1, this.w * 0.25 ); // head
         shape.graphics.endFill();
+        
+        shape.graphics.lineStyle( this.h, this.color );
+        shape.graphics.moveTo( -0.5*this.w, 0 );
+        shape.graphics.lineTo( +0.5*this.w, 0 );
     }
 
     setBody( px:number, py:number ){
         this.body = new p2.Body( {gravityScale:1, mass:0.1, position:[this.p2m(px), this.p2m(py)] } );
-        this.body.addShape(new p2.Box( { width:this.p2m(this.w), height:this.p2m(this.h), collisionGroup:PHYSICS_GROUP_PLAYER, collisionMask:PHYSICS_GROUP_OBSTACLE } ), [0, 0], 0);
+        this.body.addShape(new p2.Capsule( { length:this.w, radius:this.p2m(this.h/2), collisionGroup:PHYSICS_GROUP_PLAYER, collisionMask:PHYSICS_GROUP_OBSTACLE } ), [0, 0], Math.PI*0.0);
         this.body.displays = [this.display];
         PhysicsObject.world.addBody(this.body);
         PhysicsObject.world.on("beginContact", this.beginContact, this);
+        PhysicsObject.world.on("endContact",   this.endContact,   this);
     }
 
     beginContact(e){
         const bodyA:p2.Body = e.bodyA;
         const bodyB:p2.Body = e.bodyB;
         if( bodyA == this.body || bodyB == this.body ){
-            this.landing = true;
+            this.landOn = true;
+        }
+    }
+    landOn:boolean = false;
+    endContact(e){
+        const bodyA:p2.Body = e.bodyA;
+        const bodyB:p2.Body = e.bodyB;
+        if( bodyA == this.body || bodyB == this.body ){
+            this.landing = false;
         }
     }
 
     fixedUpdate(){
+        this.landing = this.landing || this.landOn;
+        this.landOn = false;
+
+        if( this.landing )
+        {
+            this.color = PLAYER_COLOR;
+            this.setDisplay( this.x, this.y );
+        }else{
+            this.color = COIN_COLOR;
+            this.setDisplay( this.x, this.y );
+        }
+
         this.state();
     }
 
     scrollCamera( lerp:number = 1/32, scale:number=1 ){
-        Camera2D.x = Math.max( this.x - Util.w(CAMERA_POSITION_X), Camera2D.x );
-        // Camera2D.y += ( (this.jumpButtomY - Util.h(0.5)) - Camera2D.y ) * lerp;
+        Camera2D.x = this.x - Util.w(CAMERA_POSITION_X);
+        if( this.landing )
+            Camera2D.y += ( (this.y - Util.h(0.5)) - Camera2D.y ) * lerp;
         Camera2D.scale += (scale - Camera2D.scale) * lerp;
+    }
+
+    IsStanding():boolean{
+        return ( this.landing && this.body.angle**2 < (Math.PI*0.5)**2 );
     }
 
     setStateNone(){
@@ -108,15 +132,8 @@ class Player extends PhysicsObject{
         this.state = this.stateRun;
     }
     stateRun() {
-        // this.checkLand();
-        // if( this.vx < 0 ){
-        //     this.setStateMiss();
-        //     return;
-        // }
         this.jump();
-        this.progress( true );
-
-        this.show();
+        this.scrollCamera();
         this.checkFall();
     }
 
@@ -126,17 +143,16 @@ class Player extends PhysicsObject{
 
         if( !this.jumping ){
             // 走り中
-            if( this.landing ){
+            if( this.IsStanding() ){
                 this.jumpButtomY = this.y;
                 if( this.button.press ){
-                    this.vy = -Util.w(JUMP_POWER_PER_W);
+                    const power = Util.w(JUMP_POWER_PER_W);
+                    const angle = this.body.angle + Math.PI * 0.1;
+                    this.vx = +Math.sin(angle) * power;
+                    this.vy = -Math.cos(angle) * power;
                     this.jumping = true;
                     this.floating = true;
-                    this.landing = false;
                 }
-            }
-            else{
-                this.floating = false;
             }
         }
         else{
@@ -158,37 +174,16 @@ class Player extends PhysicsObject{
                 }
 
                 // 回転
-                this.body.angularVelocity *= 0.75;
+                this.body.angularVelocity *= 0.9;
                 if( this.button.touch )
-                    this.body.angularVelocity -= 1.5;
-                // this.display.rotation += this.rv;
+                    this.body.angularVelocity = FLIP_ANGULAR;
             }
             else{
                 // 着地
                 this.jumping = false;
-                if( this.button.press || (this.button.touch && this.jumpButtonFrame <=6) ){
-                    this.vy = -Util.w(JUMP_POWER_PER_W);
-                    this.jumping = true;
-                    this.floating = true;
-                    this.landing = false;
-                }
+                this.floating = false;
             }
         }
-    }
-
-    progress( run:boolean ){
-        // if( run ){
-        //     const vxd = Util.w( PLAYER_SPEED_PER_W ) / 32;
-        //     this.vx += Util.clamp( Util.w(PLAYER_SPEED_PER_W)-this.vx, -vxd, +vxd );
-        // }
-        // this.vy += Util.w(GRAVITY_PER_W);
-        // this.vy = Math.min( this.vy, Util.w(MAX_VY_PER_W) );
-        // this.x += this.vx;
-        // this.y += this.vy;
-    }
-
-    show(){
-        this.scrollCamera();
     }
 
     checkFall():boolean{
@@ -208,7 +203,6 @@ class Player extends PhysicsObject{
     stateMiss(){
         if( this.checkFall() )
             return;
-        this.progress( false );
-        this.show();
+        this.scrollCamera();
     }
 }

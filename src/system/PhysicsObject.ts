@@ -4,7 +4,7 @@
 //  update()では自動でthis.bodyの物理演算結果をthis.displayに反映させています
 
 const PIXEL_PER_METER = (1/1);
-const PHYSICS_GRAVITY_PER_H = 0.1;
+const PHYSICS_GRAVITY_PER_H = 0.03;
 const PHYSICS_GROUP_PLAYER = 1<<1;
 const PHYSICS_GROUP_OBSTACLE = 1<<2;
 
@@ -49,7 +49,7 @@ abstract class PhysicsObject extends GameObject {
 
         PhysicsObject.world = new p2.World();
         PhysicsObject.world.gravity = [0, PhysicsObject.height * PHYSICS_GRAVITY_PER_H ];
-        PhysicsObject.world.defaultContactMaterial.friction = 1;    // default 0.3
+        PhysicsObject.world.defaultContactMaterial.friction = 0.0;    // default 0.3
         PhysicsObject.lastTime = Date.now();
         PhysicsObject.deltaScale = 1;
     }

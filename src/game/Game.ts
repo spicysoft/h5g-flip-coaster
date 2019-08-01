@@ -5,9 +5,10 @@ const GAME_AREA_H_PER_W = 1.2;      // fixedWidth 100x120 (width基準)
 const PLAYER_WIDE_PER_W = 1/16;
 const PLAYER_HIGH_PER_W = 1/32;
 const PLAYER_SPEED_PER_W = 1/120;
-const JUMP_POWER_PER_W = 1/8;
-const FLOATING_POWER_PER_W = 1/1500;
-const GRAVITY_PER_W = 1/1100;
+const JUMP_POWER_PER_W = 1/5;
+const FLOATING_POWER_PER_W = 1/1000;
+const FLIP_ANGULAR = -0.85;
+// const GRAVITY_PER_W = 1/1100;
 const MAX_VY_PER_W = 1/80;
 const CAMERA_POSITION_X = 1/5;
 
@@ -15,8 +16,6 @@ const COIN_RADIUS_PER_W = 1/96;
 const ITEM_RADIUS_PER_W = 1/48;
 const ITEM_LIMIT_FRAME = 60 * 10;
 
-const LAND_S_PW = 1/8;
-const LAND_M_PW = 1/4;
 const LAND_L_PW = 1/2;
 const BAR_RADIUS_PER_W = 1/50;
 

@@ -40,8 +40,8 @@ class Bar extends PhysicsObject{
         this.uvx *= normalizer;
         this.uvy *= normalizer;
 
-        this.cx = (px0 + py0) * 0.5;
-        this.cy = (px1 + py1) * 0.5;
+        this.cx = (px0 + px1) * 0.5;
+        this.cy = (py0 + py1) * 0.5;
         this.w = this.length;
         this.h = Util.w(BAR_RADIUS_PER_W) * 2;
         this.angle = Math.atan2( this.uvy, this.uvx );
@@ -61,11 +61,10 @@ class Bar extends PhysicsObject{
         const shape = new egret.Shape();
         this.display = shape;
         GameObject.gameDisplay.addChildAt(this.display, 1);
-        shape.x = this.cx;
-        shape.y = this.cy;
-        shape.graphics.beginFill( BAR_COLOR );
-        shape.graphics.drawRect( -0.5*this.w, -0.5*this.h, this.w, this.h );
-        shape.graphics.endFill();
+
+        shape.graphics.lineStyle( this.h, BAR_COLOR );
+        shape.graphics.moveTo( -0.5*this.w, 0 );
+        shape.graphics.lineTo( +0.5*this.w, 0 );
     }
 
     setBody(){

@@ -6,14 +6,14 @@
 function rand():number { return globalRandom.v(); }                                     // 0以上 1未満
 function randF( min:number, max:number ):number { return globalRandom.f(min, max); }    // min以上 max未満
 function randI( min:number, max:number ):number { return globalRandom.i(min, max); }    // min以上 max未満（整数）
-function randBool():boolean { return globalRandom.bool(); }
+function randBool( rate:number=0.5 ):boolean { return globalRandom.bool(rate); }
 
 class Random {
 
     v():number{ return (this.next() & Random.max) / (Random.max + 1); }     // 0以上 1未満
     f(min:number, max:number) { return min + this.v() * (max - min); }      // min以上 max未満
     i(min:number, max:number) { return Math.floor( this.f(min, max) ); }    // min以上 max未満（整数）
-    bool():boolean { return ( (this.next() & 1) != 0 ); }
+    bool( rate:number=0.5 ):boolean { return ( this.v() < rate ); }
 
     static readonly max:number = 0x3fffffff;
     
