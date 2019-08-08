@@ -10,19 +10,11 @@ class Player extends PhysicsObject{
     set x( x:number ){ this.display.x = x; }
     set y( y:number ){ this.display.y = y; }
 
-    get vx():number { return this.body.velocity[0]; }
-    get vy():number { return this.body.velocity[1]; }
-    set vx( vx:number ) { this.body.velocity[0] = vx; }
-    set vy( vy:number ) { this.body.velocity[1] = vy; }
-    
     w:number;
     h:number;
     color:number;
-    landing:boolean = true;
-    jumping:boolean = false;
+    landing:boolean = false;
     floating:boolean = false;
-    jumpButtonFrame:number = 0;
-    jumpButtomY:number = 0;
 
     magnet:number = 0;
     big:number = 0;
@@ -37,12 +29,11 @@ class Player extends PhysicsObject{
         this.w = Util.w(PLAYER_WIDE_PER_W);
         this.h = Util.w(PLAYER_HIGH_PER_W);
         this.color = PLAYER_COLOR;
-        this.jumpButtomY = Util.h(0.5);
 
         this.setDisplay( px, py );
         this.setBody( px, py );
         Camera2D.x = 0;
-        this.scrollCamera( 1, 1.1 );
+        this.scrollCamera( true, 1, 1 );
         this.button = new Button( null, 0, 0, 0.5, 0.5, 1, 1, 0x000000, 0.0, null ); // 透明な全画面ボタン
     }
 
@@ -71,7 +62,7 @@ class Player extends PhysicsObject{
     }
 
     setBody( px:number, py:number ){
-        this.body = new p2.Body( {gravityScale:1, mass:0.1, position:[this.p2m(px), this.p2m(py)] } );
+        this.body = new p2.Body( {gravityScale:0, mass:0.1, position:[this.p2m(px), this.p2m(py)] } );
         this.body.addShape(new p2.Capsule( { length:this.w, radius:this.p2m(this.h/2), collisionGroup:PHYSICS_GROUP_PLAYER, collisionMask:PHYSICS_GROUP_OBSTACLE } ), [0, 0], Math.PI*0.0);
         this.body.displays = [this.display];
         PhysicsObject.world.addBody(this.body);
@@ -83,10 +74,9 @@ class Player extends PhysicsObject{
         const bodyA:p2.Body = e.bodyA;
         const bodyB:p2.Body = e.bodyB;
         if( bodyA == this.body || bodyB == this.body ){
-            this.landOn = true;
+            this.landing = true;
         }
     }
-    landOn:boolean = false;
     endContact(e){
         const bodyA:p2.Body = e.bodyA;
         const bodyB:p2.Body = e.bodyB;
@@ -96,30 +86,31 @@ class Player extends PhysicsObject{
     }
 
     fixedUpdate(){
-        this.landing = this.landing || this.landOn;
-        this.landOn = false;
-
-        if( this.landing )
-        {
-            this.color = PLAYER_COLOR;
-            this.setDisplay( this.x, this.y );
-        }else{
-            this.color = COIN_COLOR;
-            this.setDisplay( this.x, this.y );
-        }
+        const angle = Util.deltaAngle( this.body.angle );
+        if( this.body.angle * angle < 0 )
+            Score.I.addPoint(); // 一回転でポイント
+        this.body.angle = angle;
 
         this.state();
     }
 
-    scrollCamera( lerp:number = 1/32, scale:number=1 ){
+    scrollCamera( updown:boolean, lerp:number = 1/32, scale:number=1 ){
         Camera2D.x = this.x - Util.w(CAMERA_POSITION_X);
-        if( this.landing )
-            Camera2D.y += ( (this.y - Util.h(0.5)) - Camera2D.y ) * lerp;
+        if( updown ) Camera2D.y += ( (this.y - Util.h(0.5)) - Camera2D.y ) * lerp;
         Camera2D.scale += (scale - Camera2D.scale) * lerp;
     }
 
     IsStanding():boolean{
-        return ( this.landing && this.body.angle**2 < (Math.PI*0.5)**2 );
+        if( this.landing ){
+            if( this.body.angle**2 <= (Math.PI*0.5)**2 ){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    IsUpsideDown():boolean{
+        return ( this.body.angle**2 > (Math.PI*0.75)**2 );
     }
 
     setStateNone(){
@@ -130,61 +121,65 @@ class Player extends PhysicsObject{
 
     setStateRun(){
         this.state = this.stateRun;
+        this.body.gravityScale = 1;
     }
     stateRun() {
-        this.jump();
-        this.scrollCamera();
-        this.checkFall();
-    }
-
-    jump(){
-        if( this.button.touch ) this.jumpButtonFrame++;
-        else                    this.jumpButtonFrame = 0;
-
-        if( !this.jumping ){
-            // 走り中
-            if( this.IsStanding() ){
-                this.jumpButtomY = this.y;
-                if( this.button.press ){
-                    const power = Util.w(JUMP_POWER_PER_W);
-                    const angle = this.body.angle + Math.PI * 0.1;
-                    this.vx = +Math.sin(angle) * power;
-                    this.vy = -Math.cos(angle) * power;
-                    this.jumping = true;
-                    this.floating = true;
-                }
+        // 走り中
+        if( this.IsStanding() ){
+            if( this.button.press ){
+                const power = Util.w(JUMP_POWER_PER_W);
+                const angle = this.body.angle + Math.PI * 0.15;
+                this.vx = +Math.sin(angle) * power;
+                this.vy = -Math.cos(angle) * power;
+                this.floating = true;
+                this.state = this.stateJump;
             }
         }
         else{
-            // ジャンプ中
-            if( this.landing == false ){
-                if( this.vy < 0 ){
-                    // 上昇
-                    if( this.floating ){
-                        if( this.button.touch ) this.vy -= Util.w(FLOATING_POWER_PER_W);
-                        else                    this.floating = false;
-                    }
-                }
-                else{
-                    // 下降
-                    if( this.floating ){
-                        this.floating = false;
-                        if( this.button.touch ) console.log( "jump height" + (this.y - this.jumpButtomY).toFixed(0) );
-                    }
-                }
+            this.floating = false;
+            this.state = this.stateJump;
+        }
+        this.scrollCamera( this.landing );
+    }
 
-                // 回転
-                this.body.angularVelocity *= 0.9;
-                if( this.button.touch )
-                    this.body.angularVelocity = FLIP_ANGULAR;
+    stateJump(){
+        // ジャンプ中
+        if( this.landing == false ){
+            if( this.vy < 0 ){
+                // 上昇
+                if( this.floating ){
+                    if( this.button.touch ) this.vy -= Util.w(FLOATING_POWER_PER_W);
+                    else                    this.floating = false;
+                }
             }
             else{
-                // 着地
-                this.jumping = false;
+                // 下降
+                if( this.floating ){
+                    this.floating = false;
+                }
+            }
+
+            // 回転
+            this.body.angularVelocity *= 0.9;
+            if( this.button.touch )
+                this.body.angularVelocity = -FLIP_ANGULAR;
+        }
+        else{
+            // 着地
+            if( this.IsStanding() )
+            {
+                this.state = this.stateRun;
                 this.floating = false;
             }
+            else{
+                if( this.IsUpsideDown() )
+                    this.setStateMiss();
+               }
         }
+        this.scrollCamera( this.landing );
+        this.checkFall();
     }
+
 
     checkFall():boolean{
         if( this.y - Camera2D.y >= Util.h(0.5)+Util.w(GAME_AREA_H_PER_W/2) ){
@@ -203,6 +198,5 @@ class Player extends PhysicsObject{
     stateMiss(){
         if( this.checkFall() )
             return;
-        this.scrollCamera();
     }
 }

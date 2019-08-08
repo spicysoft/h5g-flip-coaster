@@ -1,14 +1,13 @@
 // Liberapp 2019 - Tahiti Katagai
 // ゲームシーン
 
-const GAME_AREA_H_PER_W = 1.2;      // fixedWidth 100x120 (width基準)
+const GAME_AREA_H_PER_W = 1.2;      // fixedWidth 1:1.2 (width基準)
 const PLAYER_WIDE_PER_W = 1/16;
 const PLAYER_HIGH_PER_W = 1/32;
 const PLAYER_SPEED_PER_W = 1/120;
-const JUMP_POWER_PER_W = 1/5;
-const FLOATING_POWER_PER_W = 1/1000;
+const JUMP_POWER_PER_W = 1/6;
+const FLOATING_POWER_PER_W = 1/500;
 const FLIP_ANGULAR = -0.85;
-// const GRAVITY_PER_W = 1/1100;
 const MAX_VY_PER_W = 1/80;
 const CAMERA_POSITION_X = 1/5;
 

@@ -9,8 +9,8 @@ class StartMessage extends GameObject{
         super();
 
         this.texts[0] = Util.newTextField("フリップコースター", Util.width / 12, FONT_COLOR, 0.5, 0.2, true, false);
-        this.texts[1] = Util.newTextField("タッチでジャンプ＆宙返り回転", Util.width / 19, FONT_COLOR, 0.5, 0.3, true, false);
-        this.texts[2] = Util.newTextField("逆さまにならないように着地しろ！", Util.width / 19, FONT_COLOR, 0.5, 0.35, true, false);
+        this.texts[1] = Util.newTextField("タッチでジャンプ＆宙返り", Util.width / 19, FONT_COLOR, 0.5, 0.3, true, false);
+        this.texts[2] = Util.newTextField("逆さまにならないように進む", Util.width / 19, FONT_COLOR, 0.5, 0.35, true, false);
         this.texts.forEach( text =>{ GameObject.baseDisplay.addChild( text ); });
 
         GameObject.baseDisplay.once(egret.TouchEvent.TOUCH_TAP, this.tap, this);

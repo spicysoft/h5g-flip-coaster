@@ -90,4 +90,9 @@ abstract class PhysicsObject extends GameObject {
     set py( py:number ){ this.my = PhysicsObject.pixelToMeter(py); }
     set mx( mx:number ){ this.body.position[0] = mx; }
     set my( my:number ){ this.body.position[1] = my; }
+
+    get vx():number { return this.body.velocity[0]; }
+    get vy():number { return this.body.velocity[1]; }
+    set vx( vx:number ) { this.body.velocity[0] = vx; }
+    set vy( vy:number ) { this.body.velocity[1] = vy; }    
 }

@@ -1,5 +1,5 @@
 // Liberapp 2019 - Tahiti Katagai
-// ブロック生成
+// 地形生成
 
 class Wave extends GameObject{
 
@@ -22,7 +22,7 @@ class Wave extends GameObject{
         const px1 = px0 + Util.w(LAND_L_PW) * 2;
         const py1 = py0 + Util.w(0.1);
         new Bar( px0, py0, px1, py1 );
-        this.waveX += Util.w(LAND_L_PW) * 2.5;
+        this.waveX += Util.w(LAND_L_PW) * 2.25;
         this.lastPx = px1;
         this.lastPy = py1;
     }
@@ -39,21 +39,11 @@ class Wave extends GameObject{
         const px0 = this.waveX;
         const py0 = this.lastPy;
         const px1 = px0 + Util.w(LAND_L_PW);
-        const py1 = py0 + randF( 0, Util.w(0.1) );
+        const py1 = py0 + randF(0.02, Util.w( Util.lerp(0.1, 0.25, Wave.hardRate) ) );
         new Bar( px0, py0, px1, py1 );
-        this.waveX += Util.w(LAND_L_PW) * 1.5;
+        this.waveX += Util.w(LAND_L_PW) * randF( 1.2, Util.lerp( 1.5, 2.0, Wave.hardRate ) );
         this.lastPx = px1;
         this.lastPy = py1;
-    }
-
-    newCoin2( x:number, y:number ){
-        new Coin( x - Util.w(0.04),   y );
-        new Coin( x + Util.w(0.04),   y );
-    }
-    newCoin3( x:number, y:number ){
-        new Coin( x - Util.w(0.06),   y );
-        new Coin( x,                  y );
-        new Coin( x + Util.w(0.06),   y );
     }
 }
 

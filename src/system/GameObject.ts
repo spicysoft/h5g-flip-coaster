@@ -21,6 +21,7 @@ abstract class GameObject {
     onDestroy(){}
 
     // system
+    
     private static objects: GameObject[] = [];
     public static baseDisplay: egret.DisplayObjectContainer;
     public static gameDisplay: egret.DisplayObjectContainer;

@@ -24,6 +24,14 @@ class Util{
         return src + (dst-src) * rate01;
     }
 
+    // 角度を-PI~+PI範囲で表現
+    static deltaAngle( radian:number ):number {
+        let d = (radian + Math.PI) / (Math.PI*2);
+        d = (d * 0x10000) & 0xffff;
+        d = d / 0x10000 * Math.PI*2 - Math.PI;
+        return d;
+    }
+
     static color( r:number, g:number, b:number):number {
         return ( Math.floor(r * 0xff)*0x010000 + Math.floor(g * 0xff)*0x0100 + Math.floor(b * 0xff) );
     }

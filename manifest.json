@@ -11,7 +11,6 @@
 	"game": [
 		"bin-debug/system/GameObject.js",
 		"bin-debug/system/PhysicsObject.js",
-		"bin-debug/game/Coins.js",
 		"bin-debug/game/Game.js",
 		"bin-debug/game/Player.js",
 		"bin-debug/game/Wave.js",
