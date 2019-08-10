@@ -15,7 +15,7 @@ class Score extends GameObject{
 
         Score.I = this;
         this.point = 0;
-        this.text = Util.newTextField("0", Util.width / 22, FONT_COLOR2, 0.5, 0.0, true, true);
+        this.text = Util.newTextField("0", Util.width / 22, SCORE_COLOR, 0.5, 0.0, true, true);
         GameObject.baseDisplay.addChild( this.text );
 
         let bestScore = egret.localStorage.getItem(SAVE_KEY_BESTSCORE); // string
@@ -24,7 +24,7 @@ class Score extends GameObject{
             egret.localStorage.setItem(SAVE_KEY_BESTSCORE, bestScore);
         }
         this.bestScore = parseInt( bestScore );
-        this.textBest = Util.newTextField("BEST:" + bestScore + "", Util.width / 22, FONT_COLOR2, 0.0, 0.0, true, true);
+        this.textBest = Util.newTextField("BEST:" + bestScore + "", Util.width / 22, SCORE_COLOR, 0.0, 0.0, true, true);
         GameObject.baseDisplay.addChild( this.textBest );
     }
     

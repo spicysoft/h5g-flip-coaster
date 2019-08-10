@@ -15,6 +15,7 @@ class Player extends PhysicsObject{
     color:number;
     landing:boolean = false;
     floating:boolean = false;
+    lastLandY:number = 0;
 
     magnet:number = 0;
     big:number = 0;
@@ -96,7 +97,7 @@ class Player extends PhysicsObject{
 
     scrollCamera( updown:boolean, lerp:number = 1/32, scale:number=1 ){
         Camera2D.x = this.x - Util.w(CAMERA_POSITION_X);
-        if( updown ) Camera2D.y += ( (this.y - Util.h(0.5)) - Camera2D.y ) * lerp;
+        if( updown || this.y > Camera2D.y + Util.h(0.5) ) Camera2D.y += ( (this.y - Util.h(0.4)) - Camera2D.y ) * lerp;
         Camera2D.scale += (scale - Camera2D.scale) * lerp;
     }
 
@@ -126,6 +127,8 @@ class Player extends PhysicsObject{
     stateRun() {
         // 走り中
         if( this.IsStanding() ){
+            this.lastLandY = this.y;
+            this.drivingForce();
             if( this.button.press ){
                 const power = Util.w(JUMP_POWER_PER_W);
                 const angle = this.body.angle + Math.PI * 0.15;
@@ -145,6 +148,7 @@ class Player extends PhysicsObject{
     stateJump(){
         // ジャンプ中
         if( this.landing == false ){
+            this.drivingForce();
             if( this.vy < 0 ){
                 // 上昇
                 if( this.floating ){
@@ -162,7 +166,7 @@ class Player extends PhysicsObject{
             // 回転
             this.body.angularVelocity *= 0.9;
             if( this.button.touch )
-                this.body.angularVelocity = -FLIP_ANGULAR;
+                this.body.angularVelocity = FLIP_ANGULAR;
         }
         else{
             // 着地
@@ -180,9 +184,13 @@ class Player extends PhysicsObject{
         this.checkFall();
     }
 
+    drivingForce(){
+        if( this.vx < Util.w(PLAYER_SPEED_PER_W) )
+            this.vx += (Util.w(PLAYER_SPEED_PER_W) - this.vx) * 0.5;
+    }
 
     checkFall():boolean{
-        if( this.y - Camera2D.y >= Util.h(0.5)+Util.w(GAME_AREA_H_PER_W/2) ){
+        if( this.y - this.lastLandY >= Util.h(0.5)+Util.w(GAME_AREA_H_PER_W/2) ){
             this.setStateMiss();
             return true;
         }

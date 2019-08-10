@@ -78,7 +78,6 @@ class Bar extends PhysicsObject{
     fixedUpdate(){
         if( Camera2D.x - Util.w(0.5) > this.px1  ){
             this.destroy();
-            Score.I.addPoint(1);
         }
     }
 }
