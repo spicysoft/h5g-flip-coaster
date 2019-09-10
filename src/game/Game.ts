@@ -4,10 +4,10 @@
 const GAME_AREA_H_PER_W = 1.2;      // fixedWidth 1:1.2 (width基準)
 const PLAYER_WIDE_PER_W = 1/16;
 const PLAYER_HIGH_PER_W = 1/32;
-const PLAYER_SPEED_PER_W = 1/25;
-const JUMP_POWER_PER_W = 1/6;
-const FLOATING_POWER_PER_W = 1/500;
-const FLIP_ANGULAR = -1;
+const PLAYER_SPEED_PER_W = 1/16;
+const JUMP_POWER_PER_W = 1/4;
+const FLOATING_POWER_PER_W = 1/300;
+const FLIP_ANGULAR = -1.4;
 const MAX_VY_PER_W = 1/80;
 const CAMERA_POSITION_X = 1/5;
 

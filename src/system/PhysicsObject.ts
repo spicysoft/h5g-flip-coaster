@@ -4,7 +4,7 @@
 //  update()では自動でthis.bodyの物理演算結果をthis.displayに反映させています
 
 const PIXEL_PER_METER = (1/1);
-const PHYSICS_GRAVITY_PER_H = 0.03;
+const PHYSICS_GRAVITY_PER_H = 0.05;
 const PHYSICS_GROUP_PLAYER = 1<<1;
 const PHYSICS_GROUP_OBSTACLE = 1<<2;
 

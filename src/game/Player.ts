@@ -103,7 +103,7 @@ class Player extends PhysicsObject{
 
     IsStanding():boolean{
         if( this.landing ){
-            if( this.body.angle**2 <= (Math.PI*0.5)**2 ){
+            if( this.body.angle**2 <= (Math.PI*0.375)**2 ){
                 return true;
             }
         }
